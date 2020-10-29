@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import AlamofireImage
 
 /// A protocol that can be adapted by different Input Source providers
 @objc public protocol InputSource {
@@ -91,3 +92,46 @@ open class FileImageSource: NSObject, InputSource {
         callback(image)
     }
 }
+
+
+/// Input Source to load an image from a local file path
+@objcMembers
+open class VideoUrlSource: NSObject, InputSource {
+
+    public var path: String
+
+    public var autoPlay: Bool = false
+
+    public var thumbnailUrl: String?
+
+    public var placeholder: UIImage?
+
+    /// Initializes a new Image Source with an image name from the main bundle
+    /// - parameter imageString: name of the file in the application's main bundle
+    public init(path: String, authoPlay: Bool = false, thumbnailUrl: String? = nil, placeholder: UIImage? = nil) {
+        self.path = path
+        self.autoPlay = authoPlay
+        self.thumbnailUrl = thumbnailUrl
+        self.placeholder = placeholder
+        super.init()
+    }
+
+    public func load(to imageView: UIImageView, with callback: @escaping (UIImage?) -> Void) {
+        guard let url = URL(string: self.thumbnailUrl ?? self.path) else {
+            callback(self.placeholder)
+            return
+        }
+        imageView.af.setImage(withURL: url,
+                              placeholderImage: placeholder,
+                              filter: nil,
+                              progress: nil) { [weak self] (response) in
+            switch response.result {
+                case .success(let image):
+                    callback(image)
+                case .failure:
+                    callback(self?.placeholder)
+            }
+        }
+    }
+}
+

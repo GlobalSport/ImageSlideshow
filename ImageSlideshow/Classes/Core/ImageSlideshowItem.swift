@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import AVKit
 
 /// Used to wrap a single slideshow item and allow zooming on it
 @objcMembers
@@ -13,6 +14,10 @@ open class ImageSlideshowItem: UIScrollView, UIScrollViewDelegate {
 
     /// Image view to hold the image
     public let imageView = UIImageView()
+
+    public let playerViewController = AVPlayerViewController()
+    var player = AVPlayer()
+    let playerThumbnailView = UIImageView()
 
     /// Activity indicator shown during image loading, when nil there won't be shown any
     public let activityIndicator: ActivityIndicatorView?
@@ -99,6 +104,42 @@ open class ImageSlideshowItem: UIScrollView, UIScrollViewDelegate {
         singleTapGestureRecognizer!.numberOfTapsRequired = 1
         singleTapGestureRecognizer!.isEnabled = false
         imageViewWrapper.addGestureRecognizer(singleTapGestureRecognizer!)
+
+        if let video = image as? VideoUrlSource,
+            let url = URL(string: video.path) {
+            self.player = AVPlayer(url: url)
+            self.player.addObserver(self, forKeyPath: "rate", options: NSKeyValueObservingOptions.new, context: nil)
+            playerViewController.player = player
+            self.addSubview(playerViewController.view)
+
+            playerViewController.view.translatesAutoresizingMaskIntoConstraints = false
+            playerViewController.view.centerXAnchor.constraint(equalTo: imageView.centerXAnchor).isActive = true
+            playerViewController.view.centerYAnchor.constraint(equalTo: imageView.centerYAnchor).isActive = true
+            playerViewController.view.widthAnchor.constraint(equalTo: imageView.widthAnchor).isActive = true
+            playerViewController.view.heightAnchor.constraint(equalTo: imageView.heightAnchor).isActive = true
+            playerViewController.allowsPictureInPicturePlayback = true
+            playerViewController.delegate = self
+
+            if let thumbnailUrl = video.thumbnailUrl,
+                let url = URL(string: thumbnailUrl) {
+                playerThumbnailView.contentMode = .scaleAspectFill
+                playerThumbnailView.translatesAutoresizingMaskIntoConstraints = false
+                playerThumbnailView.af.setImage(withURL: url, placeholderImage: video.placeholder)
+                playerViewController.contentOverlayView?.addSubview(playerThumbnailView)
+                if let thumbSuperView = playerViewController.contentOverlayView {
+                    playerThumbnailView.topAnchor.constraint(equalTo: thumbSuperView.topAnchor).isActive = true
+                    playerThumbnailView.bottomAnchor.constraint(equalTo: thumbSuperView.bottomAnchor).isActive = true
+                    playerThumbnailView.leftAnchor.constraint(equalTo: thumbSuperView.leftAnchor).isActive = true
+                    playerThumbnailView.rightAnchor.constraint(equalTo: thumbSuperView.rightAnchor).isActive = true
+                }
+            }
+            if video.autoPlay {
+                player.play()
+            }
+        }
+        //self.setupPlayerConstrain(playerViewController.view)
+        //playerViewController.didMove(toParent: self)
+        //player.play()
     }
 
     required public init?(coder aDecoder: NSCoder) {
@@ -237,4 +278,18 @@ open class ImageSlideshowItem: UIScrollView, UIScrollViewDelegate {
         return zoomEnabled ? imageViewWrapper : nil
     }
 
+}
+
+extension ImageSlideshowItem: AVPlayerViewControllerDelegate {
+
+    open override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+        if keyPath == "rate" {
+            if player.rate == 1  {
+                print("Playing")
+                playerThumbnailView.isHidden = true
+            }else{
+                 print("Stop")
+            }
+        }
+    }
 }
