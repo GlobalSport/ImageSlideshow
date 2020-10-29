@@ -28,6 +28,10 @@ class ViewController: UIViewController {
         VideoUrlSource(path: videoUrl,
                        authoPlay: false,
                        thumbnailUrl: "https://images.unsplash.com/photo-1463595373836-6e0b0a8ee322?w=1080",
+                       placeholder: UIImage(named: "img1")),
+        VideoUrlSource(path: videoUrl,
+                       authoPlay: false,
+                       thumbnailUrl: nil,
                        placeholder: UIImage(named: "img1"))
     ]
 

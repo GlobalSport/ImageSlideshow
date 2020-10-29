@@ -120,11 +120,14 @@ open class ImageSlideshowItem: UIScrollView, UIScrollViewDelegate {
             playerViewController.allowsPictureInPicturePlayback = true
             playerViewController.delegate = self
 
-            if let thumbnailUrl = video.thumbnailUrl,
-                let url = URL(string: thumbnailUrl) {
+            if video.placeholder != nil || video.thumbnailUrl != nil {
+                playerThumbnailView.image = video.placeholder
+                if let thumbnailUrl = video.thumbnailUrl,
+                    let url = URL(string: thumbnailUrl) {
+                    playerThumbnailView.af.setImage(withURL: url, placeholderImage: video.placeholder)
+                }
                 playerThumbnailView.contentMode = .scaleAspectFill
                 playerThumbnailView.translatesAutoresizingMaskIntoConstraints = false
-                playerThumbnailView.af.setImage(withURL: url, placeholderImage: video.placeholder)
                 playerViewController.contentOverlayView?.addSubview(playerThumbnailView)
                 if let thumbSuperView = playerViewController.contentOverlayView {
                     playerThumbnailView.topAnchor.constraint(equalTo: thumbSuperView.topAnchor).isActive = true

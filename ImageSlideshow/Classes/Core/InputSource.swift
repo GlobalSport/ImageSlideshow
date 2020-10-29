@@ -117,21 +117,7 @@ open class VideoUrlSource: NSObject, InputSource {
     }
 
     public func load(to imageView: UIImageView, with callback: @escaping (UIImage?) -> Void) {
-        guard let url = URL(string: self.thumbnailUrl ?? self.path) else {
-            callback(self.placeholder)
-            return
-        }
-        imageView.af.setImage(withURL: url,
-                              placeholderImage: placeholder,
-                              filter: nil,
-                              progress: nil) { [weak self] (response) in
-            switch response.result {
-                case .success(let image):
-                    callback(image)
-                case .failure:
-                    callback(self?.placeholder)
-            }
-        }
+        // useless
     }
 }
 
