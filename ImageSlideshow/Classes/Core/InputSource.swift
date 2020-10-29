@@ -7,7 +7,6 @@
 //
 
 import UIKit
-import AlamofireImage
 
 /// A protocol that can be adapted by different Input Source providers
 @objc public protocol InputSource {
@@ -118,6 +117,25 @@ open class VideoUrlSource: NSObject, InputSource {
 
     public func load(to imageView: UIImageView, with callback: @escaping (UIImage?) -> Void) {
         // useless
+       DispatchQueue.global().async { [weak self] in
+            if let thumUrl = self?.thumbnailUrl,
+                let url = URL(string: thumUrl),
+                let data = try? Data(contentsOf: url) {
+                if let image = UIImage(data: data) {
+                    DispatchQueue.main.async {
+                        callback(image)
+                    }
+                } else {
+                    DispatchQueue.main.async {
+                        callback(self?.placeholder)
+                    }
+                }
+            } else {
+                DispatchQueue.main.async {
+                    callback(self?.placeholder)
+                }
+            }
+        }
     }
 }
 

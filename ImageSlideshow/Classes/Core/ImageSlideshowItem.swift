@@ -17,7 +17,9 @@ open class ImageSlideshowItem: UIScrollView, UIScrollViewDelegate {
 
     public let playerViewController = AVPlayerViewController()
     var player = AVPlayer()
-    let playerThumbnailView = UIImageView()
+    var playerThumbnailView = UIImageView()
+
+    var playButton = UIButton()
 
     /// Activity indicator shown during image loading, when nil there won't be shown any
     public let activityIndicator: ActivityIndicatorView?
@@ -108,10 +110,26 @@ open class ImageSlideshowItem: UIScrollView, UIScrollViewDelegate {
         if let video = image as? VideoUrlSource,
             let url = URL(string: video.path) {
             self.player = AVPlayer(url: url)
-            self.player.addObserver(self, forKeyPath: "rate", options: NSKeyValueObservingOptions.new, context: nil)
+            //self.player.addObserver(self, forKeyPath: "rate", options: NSKeyValueObservingOptions.new, context: nil)
             playerViewController.player = player
-            self.addSubview(playerViewController.view)
 
+            if video.placeholder != nil || video.thumbnailUrl != nil {
+                playerViewController.view.isHidden = true
+                self.playButton = UIButton()
+                playButton.translatesAutoresizingMaskIntoConstraints = false;
+                self.addSubview(self.playButton)
+                self.playButton.addTarget(self, action: #selector(playPressed), for: .touchUpInside)
+
+                let bundle = Bundle(for: type(of: self))
+                let imageBackground =  UIImage(named: "round_play", in: bundle, compatibleWith: nil)
+                playButton.setImage(imageBackground, for: .normal)
+                playButton.centerXAnchor.constraint(equalTo: imageView.centerXAnchor).isActive = true
+                playButton.centerYAnchor.constraint(equalTo: imageView.centerYAnchor).isActive = true
+                playButton.widthAnchor.constraint(equalToConstant: 50).isActive = true
+                playButton.heightAnchor.constraint(equalToConstant: 50).isActive = true
+            }
+
+            self.addSubview(playerViewController.view)
             playerViewController.view.translatesAutoresizingMaskIntoConstraints = false
             playerViewController.view.centerXAnchor.constraint(equalTo: imageView.centerXAnchor).isActive = true
             playerViewController.view.centerYAnchor.constraint(equalTo: imageView.centerYAnchor).isActive = true
@@ -120,29 +138,12 @@ open class ImageSlideshowItem: UIScrollView, UIScrollViewDelegate {
             playerViewController.allowsPictureInPicturePlayback = true
             playerViewController.delegate = self
 
-            if video.placeholder != nil || video.thumbnailUrl != nil {
-                playerThumbnailView.image = video.placeholder
-                if let thumbnailUrl = video.thumbnailUrl,
-                    let url = URL(string: thumbnailUrl) {
-                    playerThumbnailView.af.setImage(withURL: url, placeholderImage: video.placeholder)
-                }
-                playerThumbnailView.contentMode = .scaleAspectFill
-                playerThumbnailView.translatesAutoresizingMaskIntoConstraints = false
-                playerViewController.contentOverlayView?.addSubview(playerThumbnailView)
-                if let thumbSuperView = playerViewController.contentOverlayView {
-                    playerThumbnailView.topAnchor.constraint(equalTo: thumbSuperView.topAnchor).isActive = true
-                    playerThumbnailView.bottomAnchor.constraint(equalTo: thumbSuperView.bottomAnchor).isActive = true
-                    playerThumbnailView.leftAnchor.constraint(equalTo: thumbSuperView.leftAnchor).isActive = true
-                    playerThumbnailView.rightAnchor.constraint(equalTo: thumbSuperView.rightAnchor).isActive = true
-                }
-            }
             if video.autoPlay {
+                playerViewController.view.isHidden = false
                 player.play()
             }
         }
-        //self.setupPlayerConstrain(playerViewController.view)
-        //playerViewController.didMove(toParent: self)
-        //player.play()
+
     }
 
     required public init?(coder aDecoder: NSCoder) {
@@ -285,9 +286,14 @@ open class ImageSlideshowItem: UIScrollView, UIScrollViewDelegate {
 
 extension ImageSlideshowItem: AVPlayerViewControllerDelegate {
 
+    @objc func playPressed() {
+        self.playerViewController.view.isHidden = false
+        self.player.play()
+    }
+
     open override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if keyPath == "rate" {
-            if player.rate == 1  {
+            if let player = object as? AVPlayer, player.rate == 1  {
                 print("Playing")
                 playerThumbnailView.isHidden = true
             }else{
