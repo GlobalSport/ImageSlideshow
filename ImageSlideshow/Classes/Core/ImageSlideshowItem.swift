@@ -291,6 +291,10 @@ extension ImageSlideshowItem: AVPlayerViewControllerDelegate {
         self.player.play()
     }
 
+    @objc func pauseVideo() {
+        self.player.pause()
+    }
+
     open override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if keyPath == "rate" {
             if let player = object as? AVPlayer, player.rate == 1  {

@@ -450,6 +450,7 @@ open class ImageSlideshow: UIView {
         }
         scrollViewPage = page
         currentPage = currentPageForScrollViewPage(page)
+        slideshowItems.forEach({ $0.pauseVideo() })
     }
 
     fileprivate func currentPageForScrollViewPage(_ page: Int) -> Int {
