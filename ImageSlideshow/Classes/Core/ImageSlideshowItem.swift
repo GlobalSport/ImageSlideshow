@@ -137,11 +137,6 @@ open class ImageSlideshowItem: UIScrollView, UIScrollViewDelegate {
             playerViewController.view.heightAnchor.constraint(equalTo: imageView.heightAnchor).isActive = true
             playerViewController.allowsPictureInPicturePlayback = true
             playerViewController.delegate = self
-
-            if video.autoPlay {
-                playerViewController.view.isHidden = false
-                player.play()
-            }
         }
 
     }
@@ -289,6 +284,14 @@ extension ImageSlideshowItem: AVPlayerViewControllerDelegate {
     @objc func playPressed() {
         self.playerViewController.view.isHidden = false
         self.player.play()
+    }
+
+    @objc func autoPlay() {
+        if let video = self.image as? VideoUrlSource,
+            video.autoPlay {
+            playerViewController.view.isHidden = false
+            player.play()
+        }
     }
 
     @objc func pauseVideo() {
